@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;">
+  <title>The Dead Giants — Render</title>
+  <style>
+    :root {
+      --doc-ink:    #0a0a0a;
+      --doc-ink-2:  #14110d;
+      --doc-cream:  #f5f0e1;
+      --doc-cream-dim: #c9c4b4;
+      --doc-gold:   #c9a961;
+      --doc-amber:  #e0a040;
+      --doc-rust:   #a94a3a;
+      --doc-line:   rgba(245, 240, 225, 0.10);
+      --doc-line-2: rgba(245, 240, 225, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: var(--doc-ink);
+      color: var(--doc-cream);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 24px 28px 20px;
+      gap: 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--doc-line);
+    }
+    .header-mark {
+      font-family: "Cinzel", "Playfair Display", "Georgia", serif;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      font-size: 14px;
+      color: var(--doc-gold);
+    }
+    .header-title {
+      font-family: "Cinzel", "Playfair Display", "Georgia", serif;
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--doc-cream);
+      letter-spacing: 0.04em;
+    }
+    .header-tag {
+      margin-left: auto;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--doc-cream-dim);
+    }
+
+    .form {
+      background: var(--doc-ink-2);
+      border: 1px solid var(--doc-line);
+      border-radius: 4px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--doc-cream-dim);
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .input {
+      flex: 1;
+      background: #0e0c09;
+      border: 1px solid var(--doc-line-2);
+      color: var(--doc-cream);
+      padding: 10px 12px;
+      border-radius: 3px;
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+      font-size: 13px;
+      outline: none;
+    }
+    .input:focus { border-color: var(--doc-gold); }
+    .input::placeholder { color: rgba(245, 240, 225, 0.30); }
+
+    .btn {
+      background: transparent;
+      border: 1px solid var(--doc-line-2);
+      color: var(--doc-cream);
+      padding: 0 16px;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) {
+      border-color: var(--doc-gold);
+      color: var(--doc-gold);
+    }
+    .btn:disabled {
+      opacity: 0.40;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: var(--doc-gold);
+      border-color: var(--doc-gold);
+      color: var(--doc-ink);
+      font-weight: 600;
+      padding: 12px 22px;
+      font-size: 13px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--doc-amber);
+      border-color: var(--doc-amber);
+      color: var(--doc-ink);
+    }
+    .btn-primary:disabled {
+      background: rgba(201, 169, 97, 0.30);
+      border-color: rgba(201, 169, 97, 0.30);
+      color: rgba(10, 10, 10, 0.50);
+    }
+    .btn-danger {
+      border-color: rgba(169, 74, 58, 0.50);
+      color: var(--doc-rust);
+    }
+    .btn-danger:hover:not(:disabled) {
+      border-color: var(--doc-rust);
+      background: rgba(169, 74, 58, 0.10);
+      color: var(--doc-rust);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--doc-cream-dim);
+      flex: 1;
+    }
+    .status.error { color: var(--doc-rust); }
+    .status.ok { color: var(--doc-gold); }
+
+    .log-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      gap: 6px;
+    }
+    .log-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .log-header .label { flex-shrink: 0; }
+    .log-header .meta {
+      font-size: 11px;
+      color: var(--doc-cream-dim);
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+    }
+    .log {
+      flex: 1;
+      background: #060503;
+      border: 1px solid var(--doc-line);
+      border-radius: 3px;
+      padding: 14px 16px;
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(245, 240, 225, 0.78);
+      overflow-y: auto;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 0;
+    }
+    .log::-webkit-scrollbar { width: 8px; }
+    .log::-webkit-scrollbar-track { background: transparent; }
+    .log::-webkit-scrollbar-thumb {
+      background: rgba(245, 240, 225, 0.12);
+      border-radius: 4px;
+    }
+    .log .err { color: var(--doc-rust); }
+    .log .step { color: var(--doc-gold); }
+
+    .footer {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-top: 6px;
+    }
+
+    .hint {
+      font-size: 11px;
+      line-height: 1.55;
+      color: var(--doc-cream-dim);
+      padding: 8px 12px;
+      background: rgba(201, 169, 97, 0.06);
+      border-left: 2px solid var(--doc-gold);
+      border-radius: 0 3px 3px 0;
+    }
+    .hint code {
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+      font-size: 11px;
+      color: var(--doc-gold);
+      background: rgba(201, 169, 97, 0.08);
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="header-mark">DG</div>
+      <div class="header-title">THE DEAD GIANTS</div>
+      <div class="header-tag">Render</div>
+    </div>
+
+    <div class="form">
+      <div class="field">
+        <div class="label">Output folder</div>
+        <div class="row">
+          <input type="text" class="input" id="folder-input" placeholder="C:\videos\mcdonalds\  (chứa script.json + voice/)" readonly />
+          <button class="btn" id="browse-btn">Browse…</button>
+        </div>
+      </div>
+      <div class="hint">
+        Folder phải chứa <code>script.json</code> + <code>voice/scene-*.mp3</code> (tên file mp3 khớp với <code>scene.id</code>). Tùy chọn: <code>images/bg.jpg</code> hoặc <code>images/bg.mp4</code> làm background.
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="render-btn" disabled>Render Video</button>
+        <button class="btn btn-danger" id="cancel-btn" style="display:none;">Cancel</button>
+        <div class="status" id="status">Chọn folder để bắt đầu.</div>
+      </div>
+    </div>
+
+    <div class="log-wrap">
+      <div class="log-header">
+        <div class="label">Pipeline log</div>
+        <div class="meta" id="log-meta"></div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="footer">
+      <button class="btn" id="open-video-btn" disabled>Open video.mp4</button>
+      <button class="btn" id="open-folder-btn" disabled>Open folder</button>
+    </div>
+  </div>
+
+  <script>
+    /** @typedef {{ ok: false, reason: string } | { ok: true, scriptPath: string, hasVoiceDir: boolean, voiceDir: string }} FolderInspect */
+
+    const dg = window.dg;
+    const $folder = document.getElementById("folder-input");
+    const $browse = document.getElementById("browse-btn");
+    const $render = document.getElementById("render-btn");
+    const $cancel = document.getElementById("cancel-btn");
+    const $status = document.getElementById("status");
+    const $log    = document.getElementById("log");
+    const $logMeta = document.getElementById("log-meta");
+    const $openVideo  = document.getElementById("open-video-btn");
+    const $openFolder = document.getElementById("open-folder-btn");
+
+    let selectedFolder = null;
+    let lastVideoPath = null;
+    let isRunning = false;
+
+    function setStatus(msg, kind = "") {
+      $status.textContent = msg;
+      $status.className = "status" + (kind ? " " + kind : "");
+    }
+
+    function appendLog(text, cls = "") {
+      const span = document.createElement("span");
+      if (cls) span.className = cls;
+      span.textContent = text;
+      $log.appendChild(span);
+      $log.scrollTop = $log.scrollHeight;
+    }
+
+    async function pickFolder() {
+      const folder = await dg.selectFolder();
+      if (!folder) return;
+      selectedFolder = folder;
+      $folder.value = folder;
+      lastVideoPath = null;
+      $openVideo.disabled = true;
+      $openFolder.disabled = false;
+      const r = await dg.inspectFolder(folder);
+      if (!r.ok) {
+        $render.disabled = true;
+        if (r.reason === "missing-script-json") {
+          setStatus("Folder không có script.json — không render được.", "error");
+        } else {
+          setStatus("Folder không tồn tại.", "error");
+        }
+        return;
+      }
+      if (!r.hasVoiceDir) {
+        setStatus("Cảnh báo: chưa có voice/ — pipeline sẽ gọi TTS API (cần env vars).", "error");
+      } else {
+        setStatus("Sẵn sàng render.", "ok");
+      }
+      $render.disabled = false;
+    }
+
+    async function runRender() {
+      if (!selectedFolder || isRunning) return;
+      $log.innerHTML = "";
+      $logMeta.textContent = selectedFolder;
+      $render.disabled = true;
+      $cancel.style.display = "inline-block";
+      $browse.disabled = true;
+      $openVideo.disabled = true;
+      isRunning = true;
+      setStatus("Đang render…");
+      const r = await dg.runPipeline(selectedFolder);
+      if (!r.ok) {
+        appendLog("[ERROR] " + (r.reason ?? "unknown") + "\n", "err");
+        setStatus("Không khởi động được pipeline: " + (r.reason ?? "unknown"), "error");
+        $render.disabled = false;
+        $cancel.style.display = "none";
+        $browse.disabled = false;
+        isRunning = false;
+      }
+    }
+
+    async function cancelRender() {
+      const r = await dg.cancelPipeline();
+      if (r.ok) {
+        appendLog("\n[CANCELLED]\n", "err");
+        setStatus("Đã huỷ.", "error");
+      }
+    }
+
+    $browse.addEventListener("click", pickFolder);
+    $render.addEventListener("click", runRender);
+    $cancel.addEventListener("click", cancelRender);
+    $openVideo.addEventListener("click", () => {
+      if (lastVideoPath) dg.openPath(lastVideoPath);
+    });
+    $openFolder.addEventListener("click", () => {
+      if (selectedFolder) dg.openPath(selectedFolder);
+    });
+
+    dg.onLog((chunk) => {
+      const cls = /\b(ERROR|FAIL|fail|error)\b/.test(chunk) ? "err" :
+                  /^\[\d{4}-\d{2}-\d{2}.*?\] \[\d+\/\d+\]/.test(chunk) ? "step" : "";
+      appendLog(chunk, cls);
+    });
+    dg.onStarted((info) => {
+      $logMeta.textContent = info.scriptPath;
+    });
+    dg.onDone((info) => {
+      isRunning = false;
+      $render.disabled = false;
+      $cancel.style.display = "none";
+      $browse.disabled = false;
+      if (info.success && info.videoPath) {
+        lastVideoPath = info.videoPath;
+        $openVideo.disabled = false;
+        setStatus("Xong! video.mp4 đã sẵn sàng.", "ok");
+        appendLog("\n[DONE] " + info.videoPath + "\n", "step");
+      } else {
+        setStatus("Pipeline failed (exit " + (info.code ?? "?") + "). Xem log.", "error");
+      }
+    });
+  </script>
+</body>
+</html>
