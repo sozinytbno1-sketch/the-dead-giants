@@ -95,8 +95,11 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   await mkdir(imgDir, { recursive: true });
   let bgImageRelPath: string | null = null;
 
-  // Look for any user-pre-placed image in images/ (skip download)
-  const candidates = ["bg.jpg", "bg.jpeg", "bg.png", "bg.webp"];
+  // Look for any user-pre-placed background in images/ (skip download).
+  // Both still images and short looping video clips (mp4 / webm / mov) are
+  // accepted — the html-composer dispatches to <video> when it sees a video
+  // extension and to background-image otherwise.
+  const candidates = ["bg.jpg", "bg.jpeg", "bg.png", "bg.webp", "bg.mp4", "bg.webm", "bg.mov", "bg.m4v"];
   for (const name of candidates) {
     if (existsSync(join(imgDir, name))) {
       bgImageRelPath = `images/${name}`;
