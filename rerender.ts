@@ -17,7 +17,8 @@ import { renderWithHyperframes } from "./src/render/hyperframes-runner.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "src", "render", "templates");
 const SFX_DIR = join(__dirname, "assets", "sfx");
-const SCENE_GAP_SEC = 0.3;
+const SCENE_GAP_SEC = 0.5;
+const OUTRO_HOLD_SEC = 5;
 
 const HYPERFRAMES_CONFIG = {
   $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",
@@ -97,37 +98,39 @@ async function main() {
   const totalDur = await getDurationSec(voiceMp3);
   console.log(`voice.mp3 total: ${totalDur.toFixed(2)}s`);
 
-  // Determine bg image
-  const bgImagePath = join(outputDir, "images", "bg.jpg");
+  // Determine bg image (idempotent: any pre-placed bg.* wins)
   const fs = await import("node:fs");
-  const bgImageRelPath = fs.existsSync(bgImagePath) ? "images/bg.jpg" : null;
+  let bgImageRelPath: string | null = null;
+  for (const name of ["bg.jpg", "bg.jpeg", "bg.png", "bg.webp"]) {
+    const p = join(outputDir, "images", name);
+    if (fs.existsSync(p)) { bgImageRelPath = `images/${name}`; break; }
+  }
   console.log(`bgImage: ${bgImageRelPath ?? "(none — gradient fallback)"}`);
 
-  // TikTok avatar — find bundled (jpg/jpeg/png/webp) and copy to output dir
+  // YouTube channel logo — find bundled (jpg/jpeg/png/webp) and copy to output dir
   let bundledAvatar: string | null = null;
-  for (const ext of ["jpg", "jpeg", "png", "webp"]) {
+  for (const ext of ["png", "jpg", "jpeg", "webp"]) {
     const p = join(__dirname, "assets", `avatar.${ext}`);
     if (existsSync(p)) { bundledAvatar = p; break; }
   }
   if (!bundledAvatar) {
-    throw new Error("No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}");
+    throw new Error("No bundled channel logo found. Place an image at assets/avatar.{png,jpg,webp}");
   }
-  const ttAvatarExt = bundledAvatar.split(".").pop()!.toLowerCase();
-  const ttAvatarFile = `tiktok-avatar.${ttAvatarExt}`;
-  const ttAvatarOut = join(outputDir, ttAvatarFile);
+  const logoExt = bundledAvatar.split(".").pop()!.toLowerCase();
+  const logoFile = `youtube-logo.${logoExt}`;
   // Always re-copy in case bundled was updated
-  await copyFile(bundledAvatar, ttAvatarOut);
+  await copyFile(bundledAvatar, join(outputDir, logoFile));
 
   // Compose HTML
-  const html = composeHtml({
+  const html = await composeHtml({
     script,
     sceneAudio: sceneAudio.map((a) => ({ id: a.id, durationSec: a.durationSec })),
     gapSec: SCENE_GAP_SEC,
     bgImageRelPath,
     audioRelPath: "voice.mp3",
-    tiktok: cfg.tiktok,
-    tiktokAvatarRelPath: ttAvatarFile,
-    outroHoldSec: 3,
+    youtube: cfg.youtube,
+    youtubeLogoRelPath: logoFile,
+    outroHoldSec: OUTRO_HOLD_SEC,
   });
   await writeFile(join(outputDir, "index.html"), html);
   await writeFile(join(outputDir, "hyperframes.json"), JSON.stringify(HYPERFRAMES_CONFIG, null, 2));

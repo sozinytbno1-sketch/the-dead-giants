@@ -1,0 +1,190 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Nokia: Vua điện thoại đã ngã ngựa",
+    "source": {
+      "url": "local",
+      "domain": "local",
+      "image": null
+    },
+    "channel": "The Dead Giants"
+  },
+  "voice": {
+    "provider": "lucylab",
+    "voiceId": "${VIETNAMESE_VOICEID}",
+    "speed": 0.95
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "voiceText": "Năm hai nghìn không trăm linh bảy, Nokia chiếm bốn mươi phần trăm thị trường điện thoại di động toàn cầu. Sáu năm sau, họ gần như biến mất.",
+      "templateData": {
+        "template": "hook",
+        "headline": "Nokia",
+        "subhead": "Sự sụp đổ trong 6 năm"
+      }
+    },
+    {
+      "id": "ch1",
+      "type": "body",
+      "voiceText": "Chương một. Khởi đầu khiêm tốn.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 1,
+        "title": "Khởi Đầu",
+        "subtitle": "Từ một xưởng giấy ở Phần Lan"
+      }
+    },
+    {
+      "id": "tl1",
+      "type": "body",
+      "voiceText": "Nokia bắt đầu từ một xưởng giấy năm một tám sáu lăm, rồi chuyển sang cao su, ủng cao su, và cuối cùng là điện thoại di động.",
+      "templateData": {
+        "template": "timeline",
+        "title": "Lịch sử Nokia",
+        "events": [
+          { "year": "1865", "text": "Xưởng giấy ở Tampere, Phần Lan" },
+          { "year": "1967", "text": "Hợp nhất với hãng cao su" },
+          { "year": "1992", "text": "Tập trung vào điện thoại di động" },
+          { "year": "2000", "text": "Chiếm 40% thị phần toàn cầu" }
+        ]
+      }
+    },
+    {
+      "id": "stat",
+      "type": "body",
+      "voiceText": "Đến năm hai nghìn linh bảy, Nokia bán hơn bốn trăm triệu chiếc điện thoại trong một năm.",
+      "templateData": {
+        "template": "stat-hero",
+        "value": "400M+",
+        "label": "Điện thoại bán ra năm 2007",
+        "context": "Tương đương 40% thị phần toàn cầu"
+      }
+    },
+    {
+      "id": "ch2",
+      "type": "body",
+      "voiceText": "Chương hai. Đỉnh cao và sự kiêu ngạo.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 2,
+        "title": "Đỉnh Cao",
+        "subtitle": "Khi cả thế giới muốn một chiếc Nokia"
+      }
+    },
+    {
+      "id": "feat",
+      "type": "body",
+      "voiceText": "Lý do Nokia thống trị suốt mười lăm năm là sự kết hợp giữa pin trâu, sóng khỏe, và độ bền huyền thoại.",
+      "templateData": {
+        "template": "feature-list",
+        "title": "Vì sao Nokia thống trị",
+        "bullets": [
+          "Pin dùng cả tuần",
+          "Bắt sóng mạnh nhất",
+          "Bền tới mức trở thành meme",
+          "Giá hợp lý cho mọi tầng lớp"
+        ]
+      }
+    },
+    {
+      "id": "quote-1",
+      "type": "body",
+      "voiceText": "Nhưng năm hai nghìn không trăm linh bảy, Steve Jobs lên sân khấu và thay đổi tất cả.",
+      "templateData": {
+        "template": "quote-card",
+        "quote": "Today, Apple is going to reinvent the phone.",
+        "author": "Steve Jobs",
+        "role": "CEO Apple, 2007"
+      }
+    },
+    {
+      "id": "ch3",
+      "type": "body",
+      "voiceText": "Chương ba. Cú sốc iPhone.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 3,
+        "title": "Cú Sốc",
+        "subtitle": "Khi đế chế từ chối thay đổi"
+      }
+    },
+    {
+      "id": "compare",
+      "type": "body",
+      "voiceText": "So sánh điện thoại Nokia hàng đầu năm hai nghìn linh bảy với chiếc iPhone đầu tiên.",
+      "templateData": {
+        "template": "comparison",
+        "left": { "label": "Nokia N95", "value": "Bàn phím vật lý", "color": "amber" },
+        "right": { "label": "iPhone 1", "value": "Cảm ứng đa điểm", "color": "gold", "winner": true }
+      }
+    },
+    {
+      "id": "fact",
+      "type": "body",
+      "voiceText": "Sự thật ít người biết. CEO Nokia từng cười nhạo iPhone, gọi đó là sản phẩm thị trường ngách.",
+      "templateData": {
+        "template": "fact-card",
+        "label": "BẠN CÓ BIẾT?",
+        "fact": "CEO Nokia từng gọi iPhone là sản phẩm thị trường ngách, không đáng để lo lắng."
+      }
+    },
+    {
+      "id": "callout",
+      "type": "body",
+      "voiceText": "Cảnh báo từ lịch sử. Khi nội bộ chia rẽ, đối thủ chỉ cần đứng nhìn.",
+      "templateData": {
+        "template": "callout",
+        "tag": "ĐIỂM MẤU CHỐT",
+        "statement": "Nokia không bị Apple đánh bại. Họ tự đánh bại chính mình."
+      }
+    },
+    {
+      "id": "ch4",
+      "type": "body",
+      "voiceText": "Chương bốn. Bài học còn lại.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 4,
+        "title": "Bài Học",
+        "subtitle": "Những gì các CEO hiện đại nên ghi nhớ"
+      }
+    },
+    {
+      "id": "lessons",
+      "type": "body",
+      "voiceText": "Câu chuyện Nokia để lại ba bài học lớn cho mọi doanh nghiệp công nghệ.",
+      "templateData": {
+        "template": "feature-list",
+        "title": "Ba bài học từ Nokia",
+        "bullets": [
+          "Sự thành công hôm nay là kẻ thù của ngày mai",
+          "Văn hóa nội bộ quan trọng hơn chiến lược",
+          "Đừng bao giờ coi thường đối thủ mới"
+        ]
+      }
+    },
+    {
+      "id": "fact-2",
+      "type": "body",
+      "voiceText": "Đáng buồn thay, đến năm hai nghìn không trăm mười ba, Nokia bán mảng điện thoại cho Microsoft với giá chỉ bảy tỷ đô la.",
+      "templateData": {
+        "template": "fact-card",
+        "label": "KẾT CỤC",
+        "fact": "Nokia bán mảng điện thoại cho Microsoft năm 2013 với giá chỉ 7 tỷ USD."
+      }
+    },
+    {
+      "id": "outro",
+      "type": "outro",
+      "voiceText": "Cảm ơn bạn đã xem. Subscribe The Dead Giants để khám phá những gã khổng lồ tiếp theo đã ngã xuống.",
+      "templateData": {
+        "template": "outro",
+        "ctaTop": "Subscribe",
+        "channelName": "The Dead Giants",
+        "source": "thedeadgiantsHQ"
+      }
+    }
+  ]
+}

@@ -40,3 +40,35 @@ export function createTtsClient(cfg: Config): TtsClient {
     }
   }
 }
+
+export interface SynthesizeArgs {
+  cfg: Config;
+  text: string;
+  /** voice id from the script — currently informational; provider uses cfg's
+   *  configured voice id. Reserved for future per-scene voice override. */
+  voiceId: string;
+  /** Playback speed (0.5–2.0). Currently informational — providers may not
+   *  honor this; documentary tone is achieved at the script level. */
+  speed: number;
+  /** Output mp3 file path */
+  outPath: string;
+  /** Optional SRT subtitle path */
+  srtOutPath?: string;
+}
+
+/**
+ * High-level helper that selects the right TTS provider and writes the audio
+ * (and optional SRT) to disk. Lazily caches a single client per process — fine
+ * because the pipeline runs sequentially through scenes.
+ */
+let _cachedClient: TtsClient | null = null;
+let _cachedProvider: string | null = null;
+
+export async function synthesizeVoice(args: SynthesizeArgs): Promise<void> {
+  const { cfg, text, outPath, srtOutPath } = args;
+  if (!_cachedClient || _cachedProvider !== cfg.ttsProvider) {
+    _cachedClient = createTtsClient(cfg);
+    _cachedProvider = cfg.ttsProvider;
+  }
+  await _cachedClient.generate(text, outPath, srtOutPath);
+}

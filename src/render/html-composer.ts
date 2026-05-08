@@ -1,227 +1,247 @@
-import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Script, TemplateDataType } from "./script-schema.js";
-import type { TiktokConfig } from "../config.js";
+import type { Script } from "./script-schema.js";
+import type { TemplateDataType } from "./script-schema.js";
+import type { YoutubeConfig } from "../config.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "templates");
 
-// Grain overlay HTML inline (from installed component)
-const GRAIN_OVERLAY_HTML = `<div id="grain-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;"><div class="grain-texture"></div></div>`;
-
-// Default TikTok config (used if not passed)
-const DEFAULT_TIKTOK: TiktokConfig = {
-  displayName: "Công nghệ 24h",
-  handle: "@congnghe24h",
-  followers: "1.2M followers",
+const DEFAULT_YOUTUBE: YoutubeConfig = {
+  channelName: "The Dead Giants",
+  handle: "@thedeadgiantsHQ",
+  subscribers: "10K subscribers",
 };
-
-export interface SceneAudio {
-  id: string;
-  durationSec: number;
-}
 
 export interface ComposeArgs {
   script: Script;
-  sceneAudio: SceneAudio[];
+  /** per-scene voice durations (s) — needed to compute scene start times */
+  sceneAudio: { id: string; durationSec: number }[];
+  /** Gap between scenes (s) */
   gapSec: number;
-  bgImageRelPath: string | null;   // null => no image available
+  /** Background image relative path inside output dir, or null */
+  bgImageRelPath: string | null;
+  /** Audio relative path (e.g. "voice.mp3") */
   audioRelPath: string;
-  /** TikTok follow card config (injected into outro scene). Optional — defaults used if omitted. */
-  tiktok?: TiktokConfig;
-  /** Relative path to avatar image inside the output dir (e.g. "tiktok-avatar.jpg"). */
-  tiktokAvatarRelPath?: string;
-  /** Extra seconds added to outro scene visual duration after voice ends (TikTok card hold). Default 3. */
+  /** YouTube channel branding (replaces TikTok config in v2) */
+  youtube?: YoutubeConfig;
+  /** Path to channel logo image relative to output dir (e.g. "youtube-logo.png") */
+  youtubeLogoRelPath: string;
+  /** Extra seconds the outro scene visually holds AFTER the voice ends */
   outroHoldSec?: number;
 }
 
-export function composeHtml(args: ComposeArgs): string {
-  const { script, sceneAudio, gapSec, bgImageRelPath, audioRelPath } = args;
-  const tiktok = args.tiktok ?? DEFAULT_TIKTOK;
-  const tiktokAvatar = args.tiktokAvatarRelPath ?? "tiktok-avatar.jpg";
-  const outroHoldSec = args.outroHoldSec ?? 3;
-
-  // Compute timing per scene. Outro scene gets extra HOLD seconds so the
-  // TikTok follow card stays visible after the voice ends.
-  let cursor = 0;
-  const timing = script.scenes.map((scene) => {
-    const audio = sceneAudio.find((a) => a.id === scene.id);
-    if (!audio) throw new Error(`No audio entry for scene id=${scene.id}`);
-    const isOutro = scene.type === "outro";
-    const dur = audio.durationSec + gapSec + (isOutro ? outroHoldSec : 0);
-    const start = cursor;
-    cursor += dur;
-    return { scene, start, duration: dur };
-  });
-  const totalDuration = cursor;
-
-  // Render scenes
-  const sceneHtml = timing.map(({ scene, start, duration }) => {
-    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar);
-  }).join("\n");
-
-  // Persistent shell — uses tiktok handle in footer
-  const shellHtml = renderShell(script.metadata, tiktok);
-
-  const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
-
-  const tpl = readFileSync(join(TPL_DIR, "base.html.tmpl"), "utf8");
-  return tpl
-    .replace("{{TITLE}}", escapeHtml(script.metadata.title))
-    .replace(/\{\{TOTAL_DURATION\}\}/g, totalDuration.toFixed(2))
-    .replace("{{SHELL}}", shellHtml)
-    .replace("{{SCENES}}", sceneHtml)
-    .replace(/src="voice\.mp3"/g, `src="${audioRelPath}"`)
-    .replace('<script src="animations.js"></script>', `<script>\n${animJs}\n</script>`);
+export async function composeHtml(args: ComposeArgs): Promise<string>;
+export function composeHtml(args: ComposeArgs & { __sync: true }): string;
+export function composeHtml(args: ComposeArgs | (ComposeArgs & { __sync: true })): any {
+  if ("__sync" in args && args.__sync) return _composeHtmlSync(args);
+  return _composeHtmlAsync(args);
 }
 
-// ── PERSISTENT SHELL ───────────────────────────────────────────────────────
-function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string {
-  const channel = escapeHtml(metadata.channel);
+async function _composeHtmlAsync(args: ComposeArgs): Promise<string> {
+  const tpl = await readFile(join(TPL_DIR, "base.html.tmpl"), "utf8");
+  return _composeWithTemplate(tpl, args);
+}
+
+function _composeHtmlSync(args: ComposeArgs): string {
+  // Synchronous variant — for tests / re-render path that already has tpl in mem.
+  // Falls back to a minimal inline template.
+  const tpl = `<!DOCTYPE html><html><head>
+<meta name="viewport" content="width=1920, height=1080">
+<title>{{TITLE}}</title>
+<link rel="stylesheet" href="styles.css">
+</head><body>
+<div id="stage" data-composition-id="dead-giants-doc" data-width="1920" data-height="1080" data-start="0" data-duration="{{TOTAL_DURATION}}">
+{{SHELL}}
+<audio id="voice" class="clip" data-start="0" data-duration="{{TOTAL_DURATION}}" data-track-index="0" src="voice.mp3"></audio>
+{{SCENES}}
+</div>
+<script src="animations.js"></script>
+</body></html>`;
+  return _composeWithTemplate(tpl, args);
+}
+
+function _composeWithTemplate(tpl: string, args: ComposeArgs): string {
+  const { script, sceneAudio, gapSec, bgImageRelPath, audioRelPath, outroHoldSec = 0 } = args;
+  const youtube = args.youtube ?? DEFAULT_YOUTUBE;
+
+  // Compute scene start times
+  let cursor = 0;
+  const starts: Record<string, number> = {};
+  for (const a of sceneAudio) {
+    starts[a.id] = cursor;
+    cursor += a.durationSec + gapSec;
+  }
+  const totalDur = cursor + outroHoldSec;
+
+  // Find outro id (last scene by definition is type=outro)
+  const outroSceneId = script.scenes[script.scenes.length - 1]?.id;
+
+  // Build scene HTML
+  const sceneHtml = script.scenes
+    .map((scene, idx) => {
+      const start = starts[scene.id] ?? 0;
+      const audioDur = sceneAudio.find((a) => a.id === scene.id)?.durationSec ?? 4;
+      // Outro scene visual extends through outroHoldSec
+      const sceneDur = scene.id === outroSceneId ? audioDur + outroHoldSec : audioDur;
+      return renderScene(scene.id, scene.type, scene.templateData, start, sceneDur, bgImageRelPath, idx);
+    })
+    .join("\n\n");
+
+  const shell = renderShell(script.metadata, youtube, args.youtubeLogoRelPath);
+
+  return tpl
+    .replace(/\{\{TITLE\}\}/g, escapeHtml(script.metadata.title))
+    .replace(/\{\{TOTAL_DURATION\}\}/g, totalDur.toFixed(2))
+    .replace(/\{\{SHELL\}\}/g, shell)
+    .replace(/\{\{SCENES\}\}/g, sceneHtml)
+    .replace(/voice\.mp3/g, audioRelPath);
+}
+
+function renderShell(metadata: Script["metadata"], youtube: YoutubeConfig, logoRelPath: string): string {
+  const channelName = escapeHtml(youtube.channelName);
+  const channelNameUpper = escapeHtml(youtube.channelName.toUpperCase());
+  const handle = escapeHtml(youtube.handle);
+  const subscribers = escapeHtml(youtube.subscribers);
   const domain = escapeHtml(metadata.source.domain);
-  const handle = escapeHtml(tiktok.handle);
   return `
 <!-- Shell: persistent brand elements (no data-start → always visible) -->
 <div class="shell-bg"></div>
 
 <div class="brand-shell-header">
-  <div class="brand-icon">&gt;_</div>
+  <div class="brand-icon">DG</div>
   <div class="brand-text">
-    <div class="brand-name">${channel}</div>
-    <div class="brand-tag">TIN CÔNG NGHỆ</div>
+    <div class="brand-tag">${channelNameUpper}</div>
+    <div class="brand-name">${handle}</div>
   </div>
 </div>
 
 <div class="brand-shell-handle">
-  <span class="handle-music">&#9835;</span>
-  <span class="handle-text">${handle}</span>
+  <span class="handle-music">♪</span>
+  <span class="handle-text">${channelName}</span>
 </div>
 
-<div class="brand-shell-keyword">
-  <span>${escapeHtml(domain)}</span>
+<div class="brand-shell-keyword"><span>HISTORY · BRANDS · STORIES</span></div>
+
+<div id="grain-overlay">
+  <div class="grain-texture"></div>
 </div>
 
-${GRAIN_OVERLAY_HTML}`.trim();
+${renderYoutubeEndScreen(youtube, logoRelPath)}
+<!-- (subscribers ${subscribers}, source ${domain} for reference) -->
+`.trim();
 }
 
-// ── SCENE DISPATCH ─────────────────────────────────────────────────────────
+// ── Per-template renderers ─────────────────────────────────────────────────
+
 function renderScene(
-  scene: Script["scenes"][number],
-  start: number,
-  duration: number,
+  id: string,
+  _type: string,
+  data: TemplateDataType,
+  startSec: number,
+  durationSec: number,
   bgImageRelPath: string | null,
-  tiktok: TiktokConfig,
-  tiktokAvatarRelPath: string,
+  _index: number
 ): string {
-  const td = scene.templateData;
+  const startAttr = startSec.toFixed(2);
+  const durAttr = durationSec.toFixed(2);
+  const cssDur = `${durationSec.toFixed(2)}s`;
+  const layout = data.template;
 
-  let inner: string;
-  let layoutName: string;
-
-  switch (td.template) {
-    case "hook":
-      inner = renderHookInner(td, bgImageRelPath);
-      layoutName = "hook";
-      break;
-    case "comparison":
-      inner = renderComparisonInner(td);
-      layoutName = "comparison";
-      break;
-    case "stat-hero":
-      inner = renderStatHeroInner(td);
-      layoutName = "stat-hero";
-      break;
-    case "feature-list":
-      inner = renderFeatureListInner(td);
-      layoutName = "feature-list";
-      break;
-    case "callout":
-      inner = renderCalloutInner(td);
-      layoutName = "callout";
-      break;
-    case "outro":
-      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath);
-      layoutName = "outro";
-      break;
-    default: {
-      const _never: never = td;
-      throw new Error(`Unknown template: ${(_never as any).template}`);
-    }
-  }
-
-  return buildScene(scene, start, duration, layoutName, inner);
-}
-
-// ── HOOK SCENE ─────────────────────────────────────────────────────────────
-function renderHookInner(td: Extract<TemplateDataType, { template: "hook" }>, bgImageRelPath: string | null): string {
-  // Background
-  let bgHtml: string;
-  if (td.bgSrc && bgImageRelPath) {
-    // Ken Burns image
-    const kbClass = td.kenBurns ?? "zoom-in";
-    bgHtml = `<div class="bg kb-${kbClass}" style="background-image: url('${bgImageRelPath}')"></div>`;
-  } else {
-    bgHtml = `<div class="bg gradient-news-dark"></div>`;
-  }
-  const overlayHtml = `<div class="overlay" style="opacity: 0.55"></div>`;
-
-  const headline = escapeHtml(td.headline);
-  const subhead = td.subhead ? escapeHtml(td.subhead) : "";
-
-  return `${bgHtml}
-  ${overlayHtml}
-  <div class="layout-hook">
-    <div class="hook-headline shimmer-sweep-target">${headline}</div>
-    ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}
-  </div>`;
-}
-
-// ── COMPARISON SCENE ───────────────────────────────────────────────────────
-function renderComparisonInner(td: Extract<TemplateDataType, { template: "comparison" }>): string {
-  const lColor = td.left.color;  // "cyan" | "purple"
-  const rColor = td.right.color;
-  const winnerClass = td.right.winner ? " card-winner" : "";
+  const inner = renderLayout(data, bgImageRelPath, durationSec);
 
   return `
+<div class="scene"
+     data-scene-id="${escapeHtml(id)}"
+     data-layout="${escapeHtml(layout)}"
+     data-start="${startAttr}"
+     data-duration="${durAttr}"
+     style="--scene-dur: ${cssDur};">
+  ${inner}
+</div>`.trim();
+}
+
+function renderLayout(data: TemplateDataType, bgImageRelPath: string | null, _durationSec: number): string {
+  switch (data.template) {
+    case "hook":          return renderHook(data, bgImageRelPath);
+    case "comparison":    return renderComparison(data);
+    case "stat-hero":     return renderStatHero(data);
+    case "feature-list":  return renderFeatureList(data);
+    case "callout":       return renderCallout(data);
+    case "outro":         return renderOutro(data);
+    case "timeline":      return renderTimeline(data);
+    case "quote-card":    return renderQuoteCard(data);
+    case "chapter-title": return renderChapterTitle(data);
+    case "brand-logo":    return renderBrandLogo(data, bgImageRelPath);
+    case "fact-card":     return renderFactCard(data);
+  }
+}
+
+function bgFor(bgSrc: string | undefined, bgImageRelPath: string | null, kenBurns: string): string {
+  if (bgSrc === "$source.image" && bgImageRelPath) {
+    return `<div class="bg kb-${escapeHtml(kenBurns)}" style="background-image: url('${escapeHtml(bgImageRelPath)}');"></div>
+            <div class="overlay" style="opacity: 0.55;"></div>`;
+  }
+  if (bgSrc && !bgSrc.startsWith("$") && !bgImageRelPath) {
+    return `<div class="bg kb-${escapeHtml(kenBurns)}" style="background-image: url('${escapeHtml(bgSrc)}');"></div>
+            <div class="overlay" style="opacity: 0.55;"></div>`;
+  }
+  if (bgImageRelPath) {
+    return `<div class="bg kb-${escapeHtml(kenBurns)}" style="background-image: url('${escapeHtml(bgImageRelPath)}');"></div>
+            <div class="overlay" style="opacity: 0.55;"></div>`;
+  }
+  return `<div class="bg gradient-doc-warm"></div>`;
+}
+
+function renderHook(d: Extract<TemplateDataType, { template: "hook" }>, bgImageRelPath: string | null): string {
+  const headline = escapeHtml(d.headline);
+  const subhead = d.subhead ? `<div class="hook-subhead">${escapeHtml(d.subhead)}</div>` : "";
+  return `
+${bgFor(d.bgSrc, bgImageRelPath, d.kenBurns)}
+<div class="layout-hook">
+  <h1 class="hook-headline">${headline}</h1>
+  ${subhead}
+</div>`.trim();
+}
+
+function renderComparison(d: Extract<TemplateDataType, { template: "comparison" }>): string {
+  return `
+<div class="bg gradient-news-dark"></div>
 <div class="layout-comparison">
-  <div class="cmp-card cmp-left color-${lColor}">
-    <div class="cmp-label">${escapeHtml(td.left.label)}</div>
-    <div class="cmp-value">${escapeHtml(td.left.value)}</div>
+  <div class="cmp-card color-${escapeHtml(d.left.color)}">
+    <div class="cmp-label">${escapeHtml(d.left.label)}</div>
+    <div class="cmp-value">${escapeHtml(d.left.value)}</div>
   </div>
   <div class="cmp-vs">VS</div>
-  <div class="cmp-card cmp-right color-${rColor}${winnerClass}">
-    <div class="cmp-label">${escapeHtml(td.right.label)}</div>
-    <div class="cmp-value">${escapeHtml(td.right.value)}</div>
-    ${td.right.winner ? '<div class="cmp-winner-badge">WINNER</div>' : ""}
+  <div class="cmp-card color-${escapeHtml(d.right.color)} ${d.right.winner ? "card-winner" : ""}">
+    <div class="cmp-label">${escapeHtml(d.right.label)}</div>
+    <div class="cmp-value">${escapeHtml(d.right.value)}</div>
+    ${d.right.winner ? `<div class="cmp-winner-badge">★ Winner</div>` : ""}
   </div>
 </div>`.trim();
 }
 
-// ── STAT HERO SCENE ────────────────────────────────────────────────────────
-function renderStatHeroInner(td: Extract<TemplateDataType, { template: "stat-hero" }>): string {
-  const context = td.context ? `<div class="stat-context">${escapeHtml(td.context)}</div>` : "";
+function renderStatHero(d: Extract<TemplateDataType, { template: "stat-hero" }>): string {
+  const ctx = d.context ? `<div class="stat-context">${escapeHtml(d.context)}</div>` : "";
   return `
+<div class="bg gradient-news-dark"></div>
 <div class="layout-stat-hero">
-  <div class="stat-value shimmer-sweep-target">${escapeHtml(td.value)}</div>
-  <div class="stat-label">${escapeHtml(td.label)}</div>
-  ${context}
+  <div class="stat-value">${escapeHtml(d.value)}</div>
+  <div class="stat-label">${escapeHtml(d.label)}</div>
+  ${ctx}
 </div>`.trim();
 }
 
-// ── FEATURE LIST SCENE ─────────────────────────────────────────────────────
-function renderFeatureListInner(td: Extract<TemplateDataType, { template: "feature-list" }>): string {
-  const bullets = td.bullets.map((b, i) =>
-    `<div class="feat-bullet feat-bullet-${i}" data-idx="${i}">
-      <div class="feat-dot"></div>
-      <div class="feat-text">${escapeHtml(b)}</div>
-    </div>`
-  ).join("\n    ");
-
+function renderFeatureList(d: Extract<TemplateDataType, { template: "feature-list" }>): string {
+  const bullets = d.bullets
+    .map((b) => `<div class="feat-bullet"><span class="feat-dot"></span><span class="feat-text">${escapeHtml(b)}</span></div>`)
+    .join("\n");
   return `
+<div class="bg gradient-news-dark"></div>
 <div class="layout-feature-list">
   <div class="feat-card">
-    <div class="feat-title">${escapeHtml(td.title)}</div>
+    <div class="feat-title">${escapeHtml(d.title)}</div>
     <div class="feat-rule"></div>
     <div class="feat-bullets">
       ${bullets}
@@ -230,77 +250,153 @@ function renderFeatureListInner(td: Extract<TemplateDataType, { template: "featu
 </div>`.trim();
 }
 
-// ── CALLOUT SCENE ──────────────────────────────────────────────────────────
-function renderCalloutInner(td: Extract<TemplateDataType, { template: "callout" }>): string {
-  const tag = td.tag ? `<div class="callout-tag">${escapeHtml(td.tag)}</div>` : "";
+function renderCallout(d: Extract<TemplateDataType, { template: "callout" }>): string {
+  const tag = d.tag ? `<div class="callout-tag">${escapeHtml(d.tag)}</div>` : "";
   return `
+<div class="bg gradient-news-dark"></div>
 <div class="layout-callout">
   <div class="callout-card">
     ${tag}
-    <div class="callout-statement">${escapeHtml(td.statement)}</div>
+    <div class="callout-statement">${escapeHtml(d.statement)}</div>
   </div>
 </div>`.trim();
 }
 
-// ── OUTRO SCENE ────────────────────────────────────────────────────────────
-function renderOutroInner(
-  td: Extract<TemplateDataType, { template: "outro" }>,
-  tiktok: TiktokConfig,
-  avatarRelPath: string,
-): string {
-  const ttCard = renderTiktokCard(tiktok, avatarRelPath);
+function renderOutro(d: Extract<TemplateDataType, { template: "outro" }>): string {
   return `
+<div class="bg gradient-outro-purple"></div>
 <div class="layout-outro">
-  <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
-  <div class="out-channel">${escapeHtml(td.channelName)}</div>
+  <div class="out-cta-top">${escapeHtml(d.ctaTop)}</div>
+  <div class="out-channel">${escapeHtml(d.channelName)}</div>
   <div class="out-underline"></div>
-  <div class="out-source">Nguồn: ${escapeHtml(td.source)}</div>
-</div>
-${ttCard}`.trim();
+  <div class="out-source">${escapeHtml(d.source)}</div>
+</div>`.trim();
 }
 
-/**
- * TikTok follow card — adapted from HyperFrames `tiktok-follow` block.
- * Slides up from bottom mid-outro. Animations are added by animations.js
- * targeting elements with id="tt-card", id="tt-follow-btn", etc.
- */
-function renderTiktokCard(tiktok: TiktokConfig, avatarRelPath: string): string {
+function renderTimeline(d: Extract<TemplateDataType, { template: "timeline" }>): string {
+  const title = d.title ? `<div class="timeline-title">${escapeHtml(d.title)}</div>` : "";
+  const events = d.events
+    .map(
+      (e) => `
+    <div class="timeline-event">
+      <div class="timeline-year">${escapeHtml(e.year)}</div>
+      <div class="timeline-text">${escapeHtml(e.text)}</div>
+    </div>`
+    )
+    .join("\n");
   return `
-<div id="tt-card" class="tt-card">
-  <img class="tt-avatar" src="${escapeHtml(avatarRelPath)}" alt="${escapeHtml(tiktok.displayName)}" crossorigin="anonymous" />
-  <div class="tt-profile-info">
-    <div class="tt-display-name">${escapeHtml(tiktok.displayName)}</div>
-    <div class="tt-handle">${escapeHtml(tiktok.handle)}</div>
-    <div class="tt-followers">${escapeHtml(tiktok.followers)}</div>
+<div class="bg gradient-doc-warm"></div>
+<div class="layout-timeline">
+  ${title}
+  <div class="timeline-track">
+    ${events}
   </div>
-  <div id="tt-follow-btn" class="tt-follow-btn">
-    <span id="tt-btn-follow" class="tt-btn-text">Follow</span>
-    <span id="tt-btn-following" class="tt-btn-text tt-btn-text-following">
-      <span>Following</span>
-      <span class="tt-check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+</div>`.trim();
+}
+
+function renderQuoteCard(d: Extract<TemplateDataType, { template: "quote-card" }>): string {
+  const role = d.role ? `<div class="quote-role">${escapeHtml(d.role)}</div>` : "";
+  return `
+<div class="bg gradient-doc-warm"></div>
+<div class="layout-quote-card">
+  <div class="quote-card">
+    <span class="quote-mark">&ldquo;</span>
+    <div class="quote-text">${escapeHtml(d.quote)}</div>
+    <div class="quote-attribution">
+      <div class="quote-divider"></div>
+      <div class="quote-author">${escapeHtml(d.author)}</div>
+      ${role}
+    </div>
+  </div>
+</div>`.trim();
+}
+
+function renderChapterTitle(d: Extract<TemplateDataType, { template: "chapter-title" }>): string {
+  const sub = d.subtitle ? `<div class="chapter-subtitle">${escapeHtml(d.subtitle)}</div>` : "";
+  const padded = String(d.chapterNumber).padStart(2, "0");
+  return `
+<div class="bg gradient-doc-warm"></div>
+<div class="layout-chapter-title">
+  <div class="chapter-eyebrow">CHAPTER</div>
+  <div class="chapter-number">${padded}</div>
+  <div class="chapter-divider"></div>
+  <div class="chapter-title">${escapeHtml(d.title)}</div>
+  ${sub}
+</div>`.trim();
+}
+
+function renderBrandLogo(d: Extract<TemplateDataType, { template: "brand-logo" }>, bgImageRelPath: string | null): string {
+  const meta: string[] = [];
+  if (d.founded) {
+    meta.push(`<div class="brand-meta-item"><div class="brand-meta-label">FOUNDED</div><div class="brand-meta-value">${escapeHtml(d.founded)}</div></div>`);
+  }
+  if (d.country) {
+    meta.push(`<div class="brand-meta-item"><div class="brand-meta-label">ORIGIN</div><div class="brand-meta-value">${escapeHtml(d.country)}</div></div>`);
+  }
+  const metaHtml = meta.length
+    ? `<div class="brand-meta">${meta.join('<div class="brand-meta-divider"></div>')}</div>`
+    : "";
+  return `
+${bgFor(d.bgSrc, bgImageRelPath, d.kenBurns)}
+<div class="layout-brand-logo">
+  <div class="brand-card">
+    <div class="brand-eyebrow">THE DEAD GIANT</div>
+    <div class="brand-card-name">${escapeHtml(d.brandName)}</div>
+    ${metaHtml}
+  </div>
+</div>`.trim();
+}
+
+function renderFactCard(d: Extract<TemplateDataType, { template: "fact-card" }>): string {
+  return `
+<div class="bg gradient-doc-warm"></div>
+<div class="layout-fact-card">
+  <div class="fact-card">
+    <div class="fact-icon">!</div>
+    <div class="fact-label">${escapeHtml(d.label)}</div>
+    <div class="fact-text">${escapeHtml(d.fact)}</div>
+  </div>
+</div>`.trim();
+}
+
+// ── YouTube end-screen card (replaces TikTok follow card) ──────────────────
+
+function renderYoutubeEndScreen(youtube: YoutubeConfig, logoRelPath: string): string {
+  const name = escapeHtml(youtube.channelName);
+  const handle = escapeHtml(youtube.handle);
+  const subs = escapeHtml(youtube.subscribers);
+  return `
+<div id="yt-card" class="yt-card">
+  <div class="yt-channel-info">
+    <img class="yt-logo" src="${escapeHtml(logoRelPath)}" alt="${name}" crossorigin="anonymous" />
+    <div class="yt-channel-text">
+      <div class="yt-channel-name">${name}</div>
+      <div class="yt-handle">${handle}</div>
+      <div class="yt-subscribers">${subs}</div>
+    </div>
+  </div>
+  <div id="yt-subscribe-btn" class="yt-subscribe-btn">
+    <span id="yt-btn-subscribe" class="yt-btn-text">Subscribe</span>
+    <span id="yt-btn-subscribed" class="yt-btn-text yt-btn-text-subscribed">
+      <span>Subscribed</span>
+      <span class="yt-check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
     </span>
   </div>
+  <div class="yt-watch-next">
+    <div class="yt-watch-next-label">WATCH NEXT</div>
+    <div class="yt-watch-next-title">More dead giants &raquo;</div>
+  </div>
 </div>`.trim();
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-function buildScene(
-  scene: Script["scenes"][number],
-  start: number,
-  duration: number,
-  layoutName: string,
-  innerHtml: string,
-): string {
-  return `
-<div class="scene clip" id="scene-${scene.id}"
-     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-active="0"
-     data-layout="${layoutName}">
-  ${innerHtml}
-</div>`.trim();
-}
+// ── Utilities ──────────────────────────────────────────────────────────────
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+function escapeHtml(s: string | undefined | null): string {
+  if (s === undefined || s === null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
