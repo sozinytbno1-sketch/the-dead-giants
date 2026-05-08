@@ -1,8 +1,8 @@
 {
-  "name": "auto-news-video",
+  "name": "the-dead-giants",
   "version": "2.0.0",
-  "description": "Auto-generate Vietnamese 9:16 short news videos from URL/txt — Claude Code skill + HyperFrames + LucyLab/ElevenLabs TTS",
-  "main": "src/cli.ts",
+  "description": "The Dead Giants — 1920×1080 documentary videos from script.json + voice/scene-*.mp3, with optional Electron desktop app for one-click rendering on Windows.",
+  "main": "dist/desktop/main.cjs",
   "directories": {
     "doc": "docs"
   },
@@ -14,18 +14,23 @@
     "rerender": "tsx rerender.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
+    "build:desktop": "tsc -p desktop/tsconfig.json",
+    "build:all": "npm run build && npm run build:desktop",
+    "desktop:dev": "npm run build:all && electron .",
+    "desktop:build:win": "npm run build:all && electron-builder --win --x64",
+    "desktop:build:linux": "npm run build:all && electron-builder --linux --x64",
     "sfx:download": "tsx scripts/download-sfx.ts",
     "sfx:filter": "tsx scripts/filter-sfx.ts"
   },
   "keywords": [
     "video",
-    "tts",
-    "news",
-    "vietnamese",
-    "tiktok",
-    "shorts",
+    "documentary",
+    "youtube",
+    "the-dead-giants",
     "hyperframes",
-    "claude-code",
+    "ffmpeg",
+    "electron",
+    "desktop",
     "lucylab",
     "elevenlabs"
   ],
@@ -34,13 +39,18 @@
   "dependencies": {
     "axios": "^1.15.2",
     "dotenv": "^17.4.2",
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0",
     "hyperframes": "^0.4.34",
     "p-limit": "^7.3.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/ffprobe-static": "^2.0.3",
     "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.5",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
     "nock": "^14.0.13",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",

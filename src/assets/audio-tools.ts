@@ -3,9 +3,23 @@ import { writeFile, mkdtemp, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
+/**
+ * Resolve the binary path for `cmd` ("ffmpeg" or "ffprobe").
+ *
+ * Honors the env vars `FFMPEG_PATH` / `FFPROBE_PATH` first — this lets the
+ * Electron desktop app point at bundled binaries inside the .asar / resources
+ * directory at runtime — and falls back to the binary name (looked up via
+ * PATH) otherwise.
+ */
+function resolveBin(cmd: "ffmpeg" | "ffprobe"): string {
+  if (cmd === "ffmpeg" && process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
+  if (cmd === "ffprobe" && process.env.FFPROBE_PATH) return process.env.FFPROBE_PATH;
+  return cmd;
+}
+
 function run(cmd: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = spawn(cmd, args);
+    const proc = spawn(resolveBin(cmd as "ffmpeg" | "ffprobe"), args);
     let out = "", err = "";
     proc.stdout.on("data", (d) => (out += d.toString()));
     proc.stderr.on("data", (d) => (err += d.toString()));

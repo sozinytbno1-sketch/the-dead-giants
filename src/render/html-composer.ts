@@ -178,20 +178,40 @@ function renderLayout(data: TemplateDataType, bgImageRelPath: string | null, _du
   }
 }
 
+/** True if the resolved background path points at a video file (mp4 / webm / mov). */
+function isVideoSrc(src: string): boolean {
+  return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(src);
+}
+
+/**
+ * Emit the background HTML for a scene. Resolves `$source.image` to the
+ * pre-fetched / pre-placed background, then dispatches:
+ *   - `.mp4` / `.webm` / `.mov` / `.m4v` → `<video autoplay loop muted playsinline>`
+ *   - everything else → `<div style="background-image: url(...)">`
+ *
+ * The Ken-Burns class (`kb-zoom-in` / `kb-zoom-out` / `kb-pan-left` / …) is
+ * applied to the video element too so the same CSS animations work on it.
+ */
 function bgFor(bgSrc: string | undefined, bgImageRelPath: string | null, kenBurns: string): string {
+  let resolved: string | null = null;
   if (bgSrc === "$source.image" && bgImageRelPath) {
-    return `<div class="bg kb-${escapeHtml(kenBurns)}" style="background-image: url('${escapeHtml(bgImageRelPath)}');"></div>
-            <div class="overlay" style="opacity: 0.55;"></div>`;
+    resolved = bgImageRelPath;
+  } else if (bgSrc && !bgSrc.startsWith("$")) {
+    resolved = bgSrc;
+  } else if (bgImageRelPath) {
+    resolved = bgImageRelPath;
   }
-  if (bgSrc && !bgSrc.startsWith("$") && !bgImageRelPath) {
-    return `<div class="bg kb-${escapeHtml(kenBurns)}" style="background-image: url('${escapeHtml(bgSrc)}');"></div>
-            <div class="overlay" style="opacity: 0.55;"></div>`;
+  if (!resolved) return `<div class="bg gradient-doc-warm"></div>`;
+
+  const kb = escapeHtml(kenBurns);
+  const src = escapeHtml(resolved);
+  const overlay = `<div class="overlay" style="opacity: 0.55;"></div>`;
+  if (isVideoSrc(resolved)) {
+    return `<video class="bg kb-${kb}" autoplay loop muted playsinline preload="auto" src="${src}"></video>
+            ${overlay}`;
   }
-  if (bgImageRelPath) {
-    return `<div class="bg kb-${escapeHtml(kenBurns)}" style="background-image: url('${escapeHtml(bgImageRelPath)}');"></div>
-            <div class="overlay" style="opacity: 0.55;"></div>`;
-  }
-  return `<div class="bg gradient-doc-warm"></div>`;
+  return `<div class="bg kb-${kb}" style="background-image: url('${src}');"></div>
+            ${overlay}`;
 }
 
 function renderHook(d: Extract<TemplateDataType, { template: "hook" }>, bgImageRelPath: string | null): string {

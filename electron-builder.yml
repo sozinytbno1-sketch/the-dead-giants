@@ -1,0 +1,56 @@
+appId: com.thedeadgiants.render
+productName: The Dead Giants
+copyright: Copyright © 2025 The Dead Giants
+
+# Files included in the app.asar archive (read-only at runtime).
+files:
+  - "dist/**/*"
+  - "src/render/templates/**/*"
+  - "package.json"
+  - "desktop/index.html"
+  - "node_modules/**/*"
+  - "!node_modules/**/{CHANGELOG.md,README.md,readme.md,readme,*.markdown}"
+  - "!node_modules/**/{test,tests,__tests__,docs,doc,examples,example}/**"
+  - "!node_modules/**/*.{ts,map,d.ts.map}"
+  - "!node_modules/**/{.bin,.cache,.github,.husky}"
+  - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
+  - "!**/.DS_Store"
+
+# Files copied to <resources>/ — accessible via process.resourcesPath at runtime.
+# SFX library + brand avatar are needed by the pipeline at render time.
+extraResources:
+  - from: "src/assets/sfx"
+    to: "src/assets/sfx"
+    filter: ["**/*"]
+  - from: "src/assets/avatar.png"
+    to: "src/assets/avatar.png"
+
+# Unpack ffmpeg/ffprobe binaries from the asar archive — they must be on disk
+# and executable for child_process.spawn() to invoke them.
+asarUnpack:
+  - "node_modules/ffmpeg-static/**"
+  - "node_modules/ffprobe-static/**"
+
+directories:
+  output: dist-installer
+  buildResources: build-resources
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: ${productName} Setup ${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: The Dead Giants
+
+linux:
+  target:
+    - AppImage
+  artifactName: ${productName}-${version}.${ext}
+  category: AudioVideo

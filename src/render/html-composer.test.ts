@@ -103,6 +103,68 @@ describe("composeHtml", () => {
     expect(html).toMatch(/data-duration="[\d.]+"/);
   });
 
+  it("emits <video> tag for mp4 background instead of <div background-image>", () => {
+    const script = loadScript("sample-doc-with-image.json");
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 4 }));
+    const html = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.5,
+      bgImageRelPath: "images/bg.mp4",
+      audioRelPath: "voice.mp3",
+      youtube: YT,
+      youtubeLogoRelPath: "youtube-logo.png",
+      __sync: true,
+    });
+    // Video element with playback attributes for headless rendering
+    expect(html).toContain('<video class="bg kb-zoom-in"');
+    expect(html).toContain("autoplay");
+    expect(html).toContain("loop");
+    expect(html).toContain("muted");
+    expect(html).toContain("playsinline");
+    expect(html).toContain('src="images/bg.mp4"');
+    // Should NOT use background-image for mp4
+    expect(html).not.toContain("background-image: url('images/bg.mp4')");
+  });
+
+  it("emits <video> tag for webm and mov backgrounds too", () => {
+    const script = loadScript("sample-doc-with-image.json");
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 4 }));
+    for (const ext of ["webm", "mov", "m4v"]) {
+      const html = composeHtml({
+        script,
+        sceneAudio,
+        gapSec: 0.5,
+        bgImageRelPath: `images/bg.${ext}`,
+        audioRelPath: "voice.mp3",
+        youtube: YT,
+        youtubeLogoRelPath: "youtube-logo.png",
+        __sync: true,
+      });
+      expect(html).toContain(`src="images/bg.${ext}"`);
+      expect(html).toContain('<video class="bg kb-');
+    }
+  });
+
+  it("still uses background-image for image extensions (jpg/png/webp)", () => {
+    const script = loadScript("sample-doc-with-image.json");
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 4 }));
+    for (const ext of ["jpg", "png", "webp"]) {
+      const html = composeHtml({
+        script,
+        sceneAudio,
+        gapSec: 0.5,
+        bgImageRelPath: `images/bg.${ext}`,
+        audioRelPath: "voice.mp3",
+        youtube: YT,
+        youtubeLogoRelPath: "youtube-logo.png",
+        __sync: true,
+      });
+      expect(html).toContain(`background-image: url('images/bg.${ext}')`);
+      expect(html).not.toContain("<video class=\"bg");
+    }
+  });
+
   it("falls back to gradient when bgImageRelPath is null", () => {
     const script = loadScript("sample-doc-no-image.json");
     const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 4 }));
