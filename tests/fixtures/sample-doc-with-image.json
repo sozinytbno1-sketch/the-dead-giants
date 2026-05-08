@@ -1,0 +1,216 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "McDonald's: Đế chế thức ăn nhanh suýt phá sản",
+    "source": {
+      "url": "https://en.wikipedia.org/wiki/McDonald's",
+      "domain": "wikipedia.org",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png"
+    },
+    "channel": "The Dead Giants"
+  },
+  "voice": {
+    "provider": "lucylab",
+    "voiceId": "${VIETNAMESE_VOICEID}",
+    "speed": 0.95
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "voiceText": "Năm một chín sáu hai, một đế chế trị giá hàng trăm tỷ đô la đã đứng trên bờ vực phá sản. Đây là câu chuyện về McDonald's.",
+      "templateData": {
+        "template": "hook",
+        "headline": "McDonald's",
+        "subhead": "Đế chế suýt sụp đổ năm 1962",
+        "bgSrc": "$source.image",
+        "kenBurns": "zoom-in"
+      }
+    },
+    {
+      "id": "brand-intro",
+      "type": "body",
+      "voiceText": "McDonald's, đế chế thức ăn nhanh lớn nhất thế giới, ra đời ở Hoa Kỳ năm một chín bốn mươi.",
+      "templateData": {
+        "template": "brand-logo",
+        "brandName": "McDonald's",
+        "founded": "1940",
+        "country": "Hoa Kỳ",
+        "bgSrc": "$source.image",
+        "kenBurns": "pan-right"
+      }
+    },
+    {
+      "id": "ch1-title",
+      "type": "body",
+      "voiceText": "Chương một. Những ngày đầu tiên.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 1,
+        "title": "Khởi Đầu",
+        "subtitle": "Khi mọi thứ chỉ là một quán burger nhỏ"
+      }
+    },
+    {
+      "id": "early-history",
+      "type": "body",
+      "voiceText": "Câu chuyện bắt đầu năm một chín bốn mươi, khi anh em nhà McDonald mở quán đầu tiên ở California.",
+      "templateData": {
+        "template": "timeline",
+        "title": "Những mốc đầu tiên",
+        "events": [
+          { "year": "1940", "text": "Anh em McDonald mở quán đầu tiên" },
+          { "year": "1955", "text": "Ray Kroc mua lại McDonald's" },
+          { "year": "1965", "text": "IPO trên sàn chứng khoán" },
+          { "year": "1971", "text": "Vượt mốc 1,500 cửa hàng toàn cầu" }
+        ]
+      }
+    },
+    {
+      "id": "kroc-quote",
+      "type": "body",
+      "voiceText": "Ray Kroc từng nói, nếu bạn không phải người dám chấp nhận rủi ro, bạn nên rời khỏi thương trường.",
+      "templateData": {
+        "template": "quote-card",
+        "quote": "If you're not a risk taker, you should get the hell out of business.",
+        "author": "Ray Kroc",
+        "role": "Founder, McDonald's"
+      }
+    },
+    {
+      "id": "ch2-title",
+      "type": "body",
+      "voiceText": "Chương hai. Đỉnh cao của một đế chế.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 2,
+        "title": "Đỉnh Cao",
+        "subtitle": "Khi cả thế giới gọi tên họ"
+      }
+    },
+    {
+      "id": "stat-1",
+      "type": "body",
+      "voiceText": "Đến năm hai nghìn không trăm hai mươi ba, McDonald's có hơn bốn mươi nghìn cửa hàng trên toàn thế giới.",
+      "templateData": {
+        "template": "stat-hero",
+        "value": "40,000+",
+        "label": "Cửa hàng toàn cầu",
+        "context": "Có mặt tại hơn 100 quốc gia"
+      }
+    },
+    {
+      "id": "features",
+      "type": "body",
+      "voiceText": "Bí quyết của họ là chuẩn hóa mọi thứ. Cùng một chiếc burger, cùng một mùi vị, ở bất cứ đâu trên thế giới.",
+      "templateData": {
+        "template": "feature-list",
+        "title": "Bí quyết thành công",
+        "bullets": [
+          "Chuẩn hóa toàn cầu",
+          "Tốc độ phục vụ dưới 60 giây",
+          "Mô hình franchise lan rộng",
+          "Ngân sách marketing khổng lồ"
+        ]
+      }
+    },
+    {
+      "id": "compare-1",
+      "type": "body",
+      "voiceText": "So với đối thủ Burger King, McDonald's vượt trội về số lượng cửa hàng và doanh thu.",
+      "templateData": {
+        "template": "comparison",
+        "left": { "label": "Burger King", "value": "19,000", "color": "amber" },
+        "right": { "label": "McDonald's", "value": "40,000+", "color": "gold", "winner": true }
+      }
+    },
+    {
+      "id": "ch3-title",
+      "type": "body",
+      "voiceText": "Chương ba. Bí mật bị che giấu.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 3,
+        "title": "Khủng Hoảng",
+        "subtitle": "Sáu triệu đô la nợ và một quyết định liều lĩnh"
+      }
+    },
+    {
+      "id": "fact-1962",
+      "type": "body",
+      "voiceText": "Nhưng ít ai biết, năm một chín sáu hai, McDonald's từng đứng trên bờ vực phá sản vì khoản nợ sáu triệu đô la của Ray Kroc.",
+      "templateData": {
+        "template": "fact-card",
+        "label": "BẠN CÓ BIẾT?",
+        "fact": "McDonald's từng suýt phá sản năm 1962 vì Ray Kroc nợ hơn 6 triệu đô la."
+      }
+    },
+    {
+      "id": "callout-1",
+      "type": "body",
+      "voiceText": "Cảnh báo: nếu Harry Sonneborn không nghĩ ra mô hình bất động sản, McDonald's hôm nay đã không tồn tại.",
+      "templateData": {
+        "template": "callout",
+        "tag": "BƯỚC NGOẶT",
+        "statement": "Một quyết định bất động sản đã cứu cả đế chế khỏi sụp đổ."
+      }
+    },
+    {
+      "id": "sonneborn-quote",
+      "type": "body",
+      "voiceText": "Harry Sonneborn nói thẳng. Chúng tôi không bán burger. Chúng tôi kinh doanh bất động sản.",
+      "templateData": {
+        "template": "quote-card",
+        "quote": "We are not technically in the food business. We are in the real estate business.",
+        "author": "Harry Sonneborn",
+        "role": "CEO đầu tiên, McDonald's"
+      }
+    },
+    {
+      "id": "ch4-title",
+      "type": "body",
+      "voiceText": "Chương bốn. Bài học còn lại.",
+      "templateData": {
+        "template": "chapter-title",
+        "chapterNumber": 4,
+        "title": "Bài Học",
+        "subtitle": "Những gì các đế chế hiện đại có thể học"
+      }
+    },
+    {
+      "id": "fact-2",
+      "type": "body",
+      "voiceText": "Sự thật là, ngày nay hơn tám mươi phần trăm doanh thu của McDonald's đến từ tiền cho thuê và bản quyền, không phải bán đồ ăn.",
+      "templateData": {
+        "template": "fact-card",
+        "label": "SỰ THẬT BẤT NGỜ",
+        "fact": "Hơn 80% doanh thu của McDonald's đến từ bất động sản và franchise, không phải burger."
+      }
+    },
+    {
+      "id": "lessons",
+      "type": "body",
+      "voiceText": "Câu chuyện McDonald's dạy chúng ta ba điều quan trọng về kinh doanh.",
+      "templateData": {
+        "template": "feature-list",
+        "title": "Bài học từ McDonald's",
+        "bullets": [
+          "Mô hình kinh doanh quan trọng hơn sản phẩm",
+          "Khủng hoảng là cơ hội tái cấu trúc",
+          "Chuẩn hóa thắng sáng tạo trong scale"
+        ]
+      }
+    },
+    {
+      "id": "outro",
+      "type": "outro",
+      "voiceText": "Cảm ơn bạn đã xem. Subscribe The Dead Giants để khám phá những gã khổng lồ tiếp theo đã ngã xuống.",
+      "templateData": {
+        "template": "outro",
+        "ctaTop": "Subscribe",
+        "channelName": "The Dead Giants",
+        "source": "thedeadgiantsHQ"
+      }
+    }
+  ]
+}

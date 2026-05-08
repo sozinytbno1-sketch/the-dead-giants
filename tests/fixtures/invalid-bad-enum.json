@@ -1,70 +1,44 @@
 {
   "version": "1.0",
   "metadata": {
-    "title": "Apple ra mắt iPhone 17 với camera 200MP",
-    "source": {
-      "url": "https://vnexpress.net/iphone-17-200mp",
-      "domain": "vnexpress.net",
-      "image": "https://i1-vnexpress.vnecdn.net/iphone17.jpg"
-    },
-    "channel": "Công nghệ 24h"
+    "title": "Invalid kenBurns enum",
+    "source": { "url": "local", "domain": "local", "image": null },
+    "channel": "The Dead Giants"
   },
-  "voice": {
-    "provider": "lucylab",
-    "voiceId": "${VIETNAMESE_VOICEID}",
-    "speed": 1
-  },
+  "voice": { "provider": "lucylab", "voiceId": "test", "speed": 1.0 },
   "scenes": [
     {
       "id": "hook",
       "type": "hook",
-      "voiceText": "Apple vừa ra mắt iPhone 17 với camera hai trăm megapixel.",
+      "voiceText": "Hook with bad kenBurns",
       "templateData": {
         "template": "hook",
-        "headline": "iPhone 17",
-        "subhead": "Camera 200MP!",
-        "bgSrc": "$source.image",
-        "kenBurns": "zoom-sideways"
+        "headline": "Bad enum",
+        "kenBurns": "ROCKET-LAUNCH"
       }
     },
-    {
-      "id": "body-1",
-      "type": "body",
-      "voiceText": "Theo Apple, máy được trang bị cảm biến hoàn toàn mới có khả năng zoom quang học gấp mười lần.",
-      "templateData": {
-        "template": "stat-hero",
-        "value": "200MP",
-        "label": "Cảm biến mới"
-      }
-    },
-    {
-      "id": "body-2",
-      "type": "body",
-      "voiceText": "Pin được nâng cấp lên năm nghìn miliampe giờ.",
-      "templateData": {
-        "template": "feature-list",
-        "title": "Nâng cấp",
-        "bullets": ["Pin 5000mAh"]
-      }
-    },
-    {
-      "id": "body-3",
-      "type": "body",
-      "voiceText": "Giá khởi điểm là hai mươi mốt triệu đồng.",
-      "templateData": {
-        "template": "callout",
-        "statement": "Giá từ 21 triệu đồng."
-      }
-    },
+    { "id": "s2",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s3",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s4",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s5",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s6",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s7",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s8",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s9",  "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s10", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s11", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s12", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s13", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s14", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
     {
       "id": "outro",
       "type": "outro",
-      "voiceText": "Theo dõi Công nghệ 24h để xem bản tin mới mỗi ngày.",
+      "voiceText": "x",
       "templateData": {
         "template": "outro",
-        "ctaTop": "Theo dõi ngay",
-        "channelName": "Công nghệ 24h",
-        "source": "vnexpress.net"
+        "ctaTop": "Subscribe",
+        "channelName": "The Dead Giants",
+        "source": "thedeadgiantsHQ"
       }
     }
   ]

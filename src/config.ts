@@ -2,12 +2,17 @@ import "dotenv/config";
 
 export type TtsProvider = "lucylab" | "elevenlabs";
 
-export interface TiktokConfig {
-  displayName: string;
+/**
+ * YouTube end-screen / channel branding for "The Dead Giants" documentary
+ * channel. Replaces the legacy TikTok follow card.
+ */
+export interface YoutubeConfig {
+  channelName: string;
   handle: string;
-  followers: string;
-  /** URL to download avatar JPG. If undefined, the bundled `assets/avatar.jpg` is used. */
-  avatarUrl?: string;
+  subscribers: string;
+  /** Optional URL to download a square channel logo (jpg/png/webp). If unset,
+   *  the bundled `assets/avatar.png` is used. */
+  logoUrl?: string;
 }
 
 export interface Config {
@@ -26,8 +31,8 @@ export interface Config {
   elevenlabsModelId: string;
   elevenlabsEndpoint: string;
 
-  // TikTok follow card (outro)
-  tiktok: TiktokConfig;
+  // YouTube end-screen card (outro) — was TikTok follow card in v2
+  youtube: YoutubeConfig;
 
   ttsConcurrency: number;
 }
@@ -86,11 +91,11 @@ export function loadConfig(): Config {
     elevenlabsVoiceId: process.env.ELEVENLABS_VOICE_ID,
     elevenlabsModelId: process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2",
     elevenlabsEndpoint: process.env.ELEVENLABS_ENDPOINT ?? "https://api.elevenlabs.io/v1",
-    tiktok: {
-      displayName: process.env.TIKTOK_DISPLAY_NAME ?? "Công nghệ 24h",
-      handle: process.env.TIKTOK_HANDLE ?? "@congnghe24h",
-      followers: process.env.TIKTOK_FOLLOWERS ?? "1.2M followers",
-      avatarUrl: process.env.TIKTOK_AVATAR_URL || undefined,
+    youtube: {
+      channelName: process.env.YOUTUBE_CHANNEL_NAME ?? "The Dead Giants",
+      handle: process.env.YOUTUBE_HANDLE ?? "@thedeadgiantsHQ",
+      subscribers: process.env.YOUTUBE_SUBSCRIBERS ?? "10K subscribers",
+      logoUrl: process.env.YOUTUBE_LOGO_URL || undefined,
     },
     ttsConcurrency: intDefault("TTS_CONCURRENCY", 1),
   };

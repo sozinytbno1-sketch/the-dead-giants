@@ -13,6 +13,10 @@ const ENV_KEYS = [
   "ELEVENLABS_MODEL_ID",
   "ELEVENLABS_ENDPOINT",
   "TTS_CONCURRENCY",
+  "YOUTUBE_CHANNEL_NAME",
+  "YOUTUBE_HANDLE",
+  "YOUTUBE_SUBSCRIBERS",
+  "YOUTUBE_LOGO_URL",
 ];
 
 describe("loadConfig", () => {
@@ -90,5 +94,31 @@ describe("loadConfig", () => {
     process.env.VIETNAMESE_API_KEY = "k";
     process.env.VIETNAMESE_VOICEID = "v";
     expect(() => loadConfig()).toThrow(/TTS_PROVIDER/);
+  });
+
+  describe("YouTube end-screen config", () => {
+    it("uses defaults for The Dead Giants when env unset", () => {
+      process.env.VIETNAMESE_API_KEY = "k";
+      process.env.VIETNAMESE_VOICEID = "v";
+      const cfg = loadConfig();
+      expect(cfg.youtube.channelName).toBe("The Dead Giants");
+      expect(cfg.youtube.handle).toBe("@thedeadgiantsHQ");
+      expect(cfg.youtube.subscribers).toBe("10K subscribers");
+      expect(cfg.youtube.logoUrl).toBeUndefined();
+    });
+
+    it("reads YOUTUBE_* env overrides", () => {
+      process.env.VIETNAMESE_API_KEY = "k";
+      process.env.VIETNAMESE_VOICEID = "v";
+      process.env.YOUTUBE_CHANNEL_NAME = "Brand Stories";
+      process.env.YOUTUBE_HANDLE = "@brandstories";
+      process.env.YOUTUBE_SUBSCRIBERS = "1.2M subscribers";
+      process.env.YOUTUBE_LOGO_URL = "https://example.com/logo.png";
+      const cfg = loadConfig();
+      expect(cfg.youtube.channelName).toBe("Brand Stories");
+      expect(cfg.youtube.handle).toBe("@brandstories");
+      expect(cfg.youtube.subscribers).toBe("1.2M subscribers");
+      expect(cfg.youtube.logoUrl).toBe("https://example.com/logo.png");
+    });
   });
 });

@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Too few scenes",
+    "source": { "url": "local", "domain": "local", "image": null },
+    "channel": "The Dead Giants"
+  },
+  "voice": { "provider": "lucylab", "voiceId": "test", "speed": 1.0 },
+  "scenes": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "voiceText": "Only 5 scenes — below the 15 minimum.",
+      "templateData": { "template": "hook", "headline": "Too short" }
+    },
+    { "id": "s2", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s3", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    { "id": "s4", "type": "body", "voiceText": "x", "templateData": { "template": "fact-card", "label": "L", "fact": "f" } },
+    {
+      "id": "outro",
+      "type": "outro",
+      "voiceText": "Bye.",
+      "templateData": {
+        "template": "outro",
+        "ctaTop": "Subscribe",
+        "channelName": "The Dead Giants",
+        "source": "thedeadgiantsHQ"
+      }
+    }
+  ]
+}
